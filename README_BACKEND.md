@@ -43,7 +43,7 @@ Deploy the serverless Edge Functions to your live project so that media uploads,
 
 1. **Deploy all functions**:
    ```bash
-   npx supabase functions deploy --all
+   npx supabase functions deploy --project-ref gllisgeyldkwxowfezld
    ```
 
 2. **Set secret environment variables** (e.g. Firebase credentials for FCM notifications) on your live Supabase project if needed:
@@ -55,4 +55,22 @@ Deploy the serverless Edge Functions to your live project so that media uploads,
 
 ## 📁 Step 4: Storage Buckets Configuration
 
-Ensure that the storage policies are active. Once migrations are pushed, the buckets (`avatars`, `media`, `files`, `voice-notes`) will be created automatically via SQL policies. You can verify them on your Supabase web dashboard under the **Storage** section.
+Ensure that the storage policies are active. Once migrations are pushed, the buckets (`avatars`, `media`, `files`, `voice-notes`) are created automatically via SQL policies. You can verify them on your Supabase web dashboard under the **Storage** section.
+
+---
+
+## 🔔 Step 5: Database Webhook for Push Notifications
+
+To trigger push notifications when a new message is sent:
+
+1. Go to your **Supabase Web Dashboard**.
+2. Navigate to **Database** -> **Webhooks**.
+3. Create a new webhook:
+   - **Name**: `send-notification-webhook`
+   - **Table**: `public.messages`
+   - **Events**: Check `Insert`
+   - **Type**: `Supabase Edge Functions`
+   - **Method**: `POST`
+   - **Function**: Select `send-notification`
+   - **Headers**: Choose authorization as standard JWT (automatically provided).
+4. Save the Webhook.
