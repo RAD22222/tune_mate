@@ -54,6 +54,23 @@ Deno.serve(async (req) => {
       }
       const otherUserId = memberIds[0];
 
+      // Verify they are contacts
+      const { data: contactRecord, error: contactErr } = await adminClient
+        .from("contacts")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("contact_id", otherUserId)
+        .maybeSingle();
+
+      if (contactErr) throw contactErr;
+
+      if (!contactRecord) {
+        return new Response(JSON.stringify({ error: "You must be connected as contacts to start a conversation" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Query if direct chat exists
       const { data: myMembers, error: myMembersErr } = await adminClient
         .from("conversation_members")
