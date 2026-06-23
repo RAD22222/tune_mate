@@ -39,39 +39,49 @@ class AuthState extends _$AuthState {
     return repository.getCurrentUser();
   }
 
-  Future<void> login(String email, String password) async {
+  Future<void> sendOtpForLogin(String email) async {
     state = const AsyncValue.loading();
     try {
-      await AuthService().signIn(email: email, password: password);
-      final repository = ref.read(chatRepositoryProvider);
-      final user = await repository.getCurrentUser();
-      state = AsyncValue.data(user);
+      await AuthService().signInWithOtp(email: email);
+      state = const AsyncValue.data(null); // Keep state as unauthenticated until OTP is verified
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
-  Future<void> register({
+  Future<void> sendOtpForRegister({
     required String email,
-    required String password,
     required String displayName,
+    required int age,
   }) async {
     state = const AsyncValue.loading();
     try {
-      final username = '${displayName.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}_${DateTime.now().millisecond}';
-
-      await AuthService().signUp(
+      await AuthService().signInWithOtp(
         email: email,
-        password: password,
         displayName: displayName,
-        username: username,
+        age: age,
       );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
 
+  Future<void> verifyOtpCode({
+    required String email,
+    required String token,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await AuthService().verifyOtp(email: email, token: token);
       final repository = ref.read(chatRepositoryProvider);
       final user = await repository.getCurrentUser();
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 

@@ -10,6 +10,51 @@ class AuthService {
 
   SupabaseClient get _client => SupabaseService.client;
 
+  Future<void> signInWithOtp({
+    required String email,
+    String? displayName,
+    int? age,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (displayName != null) {
+        data['display_name'] = displayName;
+        data['username'] = '${displayName.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}_${DateTime.now().millisecond}';
+      }
+      if (age != null) {
+        data['age'] = age;
+      }
+
+      await _client.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: true,
+        data: data.isNotEmpty ? data : null,
+      );
+    } on AuthException catch (e) {
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception('An unexpected error occurred during OTP sign in: $e');
+    }
+  }
+
+  Future<AuthResponse> verifyOtp({
+    required String email,
+    required String token,
+  }) async {
+    try {
+      final response = await _client.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.email,
+      );
+      return response;
+    } on AuthException catch (e) {
+      throw Exception(e.message);
+    } catch (e) {
+      throw Exception('An unexpected error occurred during OTP verification: $e');
+    }
+  }
+
   Future<AuthResponse> signUp({
     required String email,
     required String password,

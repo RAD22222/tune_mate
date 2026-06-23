@@ -9,6 +9,7 @@ import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/forgot_password_screen.dart';
+import 'features/auth/presentation/screens/otp_verification_screen.dart';
 import 'features/conversations/presentation/screens/conversations_list_screen.dart';
 import 'features/conversations/presentation/screens/new_conversation_screen.dart';
 import 'features/chat/presentation/screens/chat_screen.dart';
@@ -32,7 +33,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.value != null;
       final isLoggingIn = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/forgot-password';
+          state.matchedLocation == '/forgot-password' ||
+          state.matchedLocation == '/verify-otp';
 
       if (!isLoggedIn) {
         return isLoggingIn ? null : '/login';
@@ -56,6 +58,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/verify-otp',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          return OtpVerificationScreen(email: email);
+        },
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,

@@ -1,42 +1,44 @@
-// lib/features/auth/presentation/screens/login_screen.dart
+// FILE: lib/features/auth/presentation/screens/otp_verification_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../providers/auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class OtpVerificationScreen extends ConsumerStatefulWidget {
+  final String email;
+
+  const OtpVerificationScreen({super.key, required this.email});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final email = _emailController.text.trim();
-        await ref.read(authStateProvider.notifier).sendOtpForLogin(email);
-        if (mounted) {
-          context.push('/verify-otp?email=${Uri.encodeComponent(email)}');
-        }
+        final code = _codeController.text.trim();
+        await ref.read(authStateProvider.notifier).verifyOtpCode(
+              email: widget.email,
+              token: code,
+            );
+        // The router redirect guard will automatically navigate to /conversations on auth status change!
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to send code: $e')),
+            SnackBar(content: Text('Verification failed: $e')),
           );
         }
       }
@@ -49,6 +51,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Verify Email'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSizes.p24),
@@ -58,44 +67,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.album, // Music related icon for "TuneMate"
+                const Icon(
+                  Icons.mark_email_read_outlined,
                   size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Colors.blue,
                 ),
                 const SizedBox(height: AppSizes.p24),
                 Text(
-                  AppStrings.loginTitle,
+                  'Enter Code',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
                 const SizedBox(height: AppSizes.p8),
-                const Text(
-                  'Enter your email to receive a 6-digit login verification code',
+                Text(
+                  'We sent a 6-digit code to:\n${widget.email}',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                        color: Colors.grey,
-                      ),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: AppSizes.p32),
                 TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _codeController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
                   decoration: const InputDecoration(
-                    labelText: AppStrings.emailLabel,
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: '6-Digit Code',
+                    alignLabelWithHint: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(AppSizes.r12)),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Please enter the code';
                     }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                    if (value.length < 6) {
+                      return 'Code must be 6 digits';
                     }
                     return null;
                   },
@@ -121,14 +130,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         )
                       : const Text(
-                          'Send Verification Code',
+                          'Verify & Login',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                ),
-                const SizedBox(height: AppSizes.p24),
-                TextButton(
-                  onPressed: () => context.push('/register'),
-                  child: const Text(AppStrings.noAccountText),
                 ),
               ],
             ),
