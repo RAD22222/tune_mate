@@ -1,7 +1,7 @@
 -- // FILE: supabase/migrations/20240001000004_storage_buckets.sql
 
--- Enable RLS on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Enable RLS on storage.objects (already enabled by default on cloud instance)
+-- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================
 -- INSERT STORAGE BUCKETS
