@@ -26,7 +26,7 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = []
 jwt_expiry = 3600
 enable_signup = true
-enable_anonymous_sign_in = false
+enable_anonymous_sign_ins = false
 minimum_password_length = 6
 
 [auth.email]
@@ -39,7 +39,6 @@ enable_signup = false
 
 [realtime]
 enabled = true
-max_mime_messages_per_second = 100
 
 [storage]
 enabled = true
